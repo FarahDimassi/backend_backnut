@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -83,21 +84,54 @@ public class UserService {
     }
 
     public Invitation sendInvitation(Long userId, Long coachId) {
+        // Récupération du sender
         User sender = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+        // Récupération du coach destinataire
         User receiver = userRepository.findById(coachId)
                 .orElseThrow(() -> new RuntimeException("Coach introuvable"));
-
         if (!"Coach".equalsIgnoreCase(receiver.getRole())) {
             throw new RuntimeException("Le destinataire n'est pas un coach.");
         }
-
+        if ("user".equalsIgnoreCase(sender.getRole())) {
+            // Liste des statuts bloquants
+            List<String> blockingStatuses = Arrays.asList("PENDING", "ACCEPTED", "ADMIN_REQUESTED");
+            boolean invitationExists = invitationRepository.existsBySenderAndStatusIn(sender, blockingStatuses);
+            if (invitationExists) {
+                throw new RuntimeException("Vous avez déjà envoyé une invitation bloquante.");
+            }
+        }
         Invitation invitation = new Invitation();
         invitation.setSender(sender);
         invitation.setReceiver(receiver);
         invitation.setStatus("PENDING");
         return invitationRepository.save(invitation);
     }
+
+    /**
+     * Demande de réinitialisation d'une invitation.
+     * L'utilisateur peut demander le reset de son invitation actuelle (même si le statut est "ACCEPTED")
+     * en envoyant un message. Cette demande change le statut de l'invitation bloquante en "ADMIN_REQUESTED"
+     * et y stocke le message. L'admin devra par la suite accepter la demande pour réinitialiser l'invitation,
+     * permettant ainsi à l'utilisateur d'envoyer une nouvelle invitation.
+     */
+    public Invitation requestResetInvitation(Long userId, String message) {
+        User sender = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+        // Liste des statuts bloquants
+        List<String> blockingStatuses = Arrays.asList("PENDING", "ACCEPTED", "ADMIN_REQUESTED");
+
+        // Utilisation de findFirst pour récupérer la première invitation bloquante
+        Optional<Invitation> optInvitation = invitationRepository.findFirstBySenderAndStatusIn(sender, blockingStatuses);
+        if (!optInvitation.isPresent()) {
+            throw new RuntimeException("Aucune invitation bloquante trouvée pour cet utilisateur.");
+        }
+        Invitation invitationToReset = optInvitation.get();
+        invitationToReset.setStatus("ADMIN_REQUESTED");
+        invitationToReset.setAdminRequestMessage(message);
+        return invitationRepository.save(invitationToReset);
+    }
+
 
     public String uploadUserPhoto(Long userId, MultipartFile file) throws Exception {
         if (file.isEmpty()) {

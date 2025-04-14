@@ -1,6 +1,8 @@
 package com.example.backnut.services;
 
+import com.example.backnut.models.Invitation;
 import com.example.backnut.models.User;
+import com.example.backnut.repository.InvitationRepository;
 import com.example.backnut.repository.UserRepository;
 import com.example.backnut.security.JwtUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,14 +18,19 @@ public class AdminService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final JwtUtil jwtUtil;
+    private final InvitationRepository invitationRepository;
+
+
 
     public AdminService(UserRepository userRepository,
                         PasswordEncoder passwordEncoder,
                         EmailService emailService,
+                        InvitationRepository invitationRepository,
                         JwtUtil jwtUtil) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
+        this.invitationRepository = invitationRepository;
         this.jwtUtil = jwtUtil;
     }
 
@@ -83,4 +90,15 @@ public class AdminService {
             return "";
 
     }
+    public Invitation acceptResetRequest(Long invitationId) {
+        Invitation invitation = invitationRepository.findById(invitationId)
+                .orElseThrow(() -> new RuntimeException("Invitation introuvable"));
+        if (!"ADMIN_REQUESTED".equalsIgnoreCase(invitation.getStatus())) {
+            throw new RuntimeException("Cette invitation n'est pas en demande de réinitialisation.");
+        }
+        // Passage du statut à "RESET" pour débloquer l'envoi d'une nouvelle invitation
+        invitation.setStatus("RESET");
+        return invitationRepository.save(invitation);
+    }
+
 }

@@ -25,6 +25,8 @@ public class Invitation {
     // Statut : PENDING, ACCEPTED
     private String status;
 
+    private String adminRequestMessage;
+
     public void setSender(User sender) {
         this.sender = sender;
     }
@@ -55,5 +57,13 @@ public class Invitation {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getAdminRequestMessage() {
+        return adminRequestMessage;
+    }
+
+    public void setAdminRequestMessage(String adminRequestMessage) {
+        this.adminRequestMessage = adminRequestMessage;
     }
 }

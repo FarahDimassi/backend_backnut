@@ -58,10 +58,35 @@ public class UserController {
         }
     }
     // 🔹 Envoyer une invitation à un coach
+
     @PostMapping("/invite")
     public ResponseEntity<?> inviteCoach(@RequestParam Long userId, @RequestParam Long coachId) {
         Invitation invitation = userService.sendInvitation(userId, coachId);
-        return ResponseEntity.ok(Map.of("message", "Invitation envoyée !", "invitationId", invitation.getId()));
+        return ResponseEntity.ok(Map.of(
+                "message", "Invitation envoyée !",
+                "invitationId", invitation.getId()
+        ));
+    }
+
+    // Demander la réinitialisation de l'envoi d'une invitation
+    // (cas où l'utilisateur n'aime pas le premier coach et veut contacter un autre coach)
+    @PostMapping("/request-reset-invitation")
+    public ResponseEntity<?> requestResetInvitation(
+            @RequestParam Long userId,
+            @RequestBody Map<String, String> body) {
+
+        // On attend que le body contienne une clé "message"
+        String message = body.get("message");
+        if (message == null || message.isEmpty()) {
+            return ResponseEntity.badRequest().body("Le champ 'message' est requis.");
+        }
+
+        Invitation invitation = userService.requestResetInvitation(userId, message);
+        return ResponseEntity.ok(Map.of(
+                "message", "Demande de réinitialisation de l'invitation envoyée à l'admin.",
+                "invitationId", invitation.getId(),
+                "adminRequestMessage", invitation.getAdminRequestMessage()
+        ));
     }
     @PostMapping("/uploadPhoto")
     public ResponseEntity<?> uploadPhoto(
