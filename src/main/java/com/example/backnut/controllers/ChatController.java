@@ -2,7 +2,11 @@ package com.example.backnut.controllers;
 
 import com.example.backnut.models.Chat;
 import com.example.backnut.models.ChatMessage;
+import com.example.backnut.models.Invitation;
+import com.example.backnut.models.User;
 import com.example.backnut.repository.ChatRepository;
+import com.example.backnut.repository.InvitationRepository;
+import com.example.backnut.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -11,6 +15,7 @@ import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Controller
 public class ChatController {
@@ -21,19 +26,56 @@ public class ChatController {
     @Autowired
     private ChatRepository chatRepository;
 
+    @Autowired
+    private InvitationRepository invitationRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
     /**
-     * Handle incoming chat messages.
-     * Overrides the senderId with the authenticated user's id.
-     * Publishes the message to a room identified as {min(senderId, receiverId)}_{max(senderId, receiverId)}
-     * so that both sender and receiver receive the message.
+     * Traite les messages entrants. Utilise l'ID de l'utilisateur authentifié comme senderId.
+     * Vérifie qu'une invitation existe entre l'utilisateur (sender) et le coach (receiver)
+     * avec le statut "ACCEPTED". Dans ce cas, sender doit être 9 et receiver 59.
+     * Si la condition est remplie, le message est sauvegardé et diffusé dans la salle de chat.
      */
     @MessageMapping("/chat")
     public void processMessage(Principal principal, @Payload ChatMessage chatMessage) {
-        // Use the authenticated user's id as senderId.
+        // Extraire l'ID du sender depuis le Principal.
         Long senderId = Long.valueOf(principal.getName());
         chatMessage.setSenderId(senderId);
 
-        // Persist the chat message.
+        // Récupérer les objets User pour sender et receiver.
+        Optional<User> senderOpt = userRepository.findById(senderId);
+        Optional<User> receiverOpt = userRepository.findById(chatMessage.getReceiverId());
+        if (!senderOpt.isPresent() || !receiverOpt.isPresent()) {
+            System.out.println("Sender or receiver not found.");
+            return;
+        }
+        User sender = senderOpt.get();
+        User receiver = receiverOpt.get();
+
+        // Vérifier qu'une invitation ACCEPTED existe entre sender et receiver.
+        // Dans votre scénario, vous attendez sender = 9 et receiver = 59.
+        Optional<Invitation> invitationOpt = invitationRepository
+                .findTopBySenderAndReceiverAndStatusOrderByIdDesc(sender, receiver, "ACCEPTED");
+
+        // Si la requête ne renvoie rien, vous pouvez éventuellement tester dans l'autre sens.
+        if (!invitationOpt.isPresent()) {
+            invitationOpt = invitationRepository
+                    .findTopBySenderAndReceiverAndStatusOrderByIdDesc(receiver, sender, "ACCEPTED");
+        }
+        if (!invitationOpt.isPresent()) {
+            System.out.println("Aucune invitation ACCEPTED trouvée pour sender " + sender.getId() +
+                    " et receiver " + receiver.getId());
+            messagingTemplate.convertAndSendToUser(
+                    principal.getName(),  // Il faut que ce principal.getName() corresponde à l'identifiant de l'utilisateur côté client
+                    "/queue/errors",
+                    "Tu ne peux pas communiquer avec ce coach"
+            );
+            return;
+        }
+
+        // Si l'invitation est trouvée, traiter le message.
         Chat chat = new Chat(
                 senderId,
                 chatMessage.getReceiverId(),
@@ -42,15 +84,15 @@ public class ChatController {
         );
         chatRepository.save(chat);
 
-        // Build room id using a consistent order so that both parties join the same room.
+        // Construire un identifiant de salle de chat (room id) de façon déterministe.
         String roomId = buildRoomId(senderId, chatMessage.getReceiverId());
 
-        // Publish the message to the room. Both sender and receiver should subscribe to this topic.
+        // Publier le message sur le topic de la salle.
         messagingTemplate.convertAndSend("/topic/room/" + roomId, chatMessage);
     }
 
     /**
-     * Build a room id so that it is independent of sender/receiver order.
+     * Construit un identifiant de salle à partir de deux identifiants, indépendamment de l'ordre.
      */
     private String buildRoomId(Long id1, Long id2) {
         return id1 < id2 ? id1 + "_" + id2 : id2 + "_" + id1;

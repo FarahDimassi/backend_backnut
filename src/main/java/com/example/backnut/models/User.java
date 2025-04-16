@@ -23,14 +23,15 @@ public class User {
     private String password;
 
     private String role;
-
+    @Column(unique = true, nullable = false)
     private  String email;
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     private boolean isActive = false;
     private String photoUrl;
-
+    private String resetOtp;
+    private LocalDateTime resetOtpExpiry;
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -92,4 +93,19 @@ public class User {
     }
 
 
+    public String getResetOtp() {
+        return resetOtp;
+    }
+
+    public void setResetOtp(String resetOtp) {
+        this.resetOtp = resetOtp;
+    }
+
+    public LocalDateTime getResetOtpExpiry() {
+        return resetOtpExpiry;
+    }
+
+    public void setResetOtpExpiry(LocalDateTime resetOtpExpiry) {
+        this.resetOtpExpiry = resetOtpExpiry;
+    }
 }

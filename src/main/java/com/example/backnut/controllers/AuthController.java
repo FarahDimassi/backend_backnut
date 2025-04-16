@@ -58,4 +58,18 @@ public class AuthController {
         String message = authService.logout(token);
         return ResponseEntity.ok(message);
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestParam String email) {
+        String message = authService.forgotPassword(email);
+        return ResponseEntity.ok(message);
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<String> verifyOtpAndResetPassword(@RequestParam String email,
+                                                            @RequestParam String otp,
+                                                            @RequestParam String newPassword) {
+        String message = authService.verifyOtpAndResetPassword(email, otp, newPassword);
+        return ResponseEntity.ok(message);
+    }
 }

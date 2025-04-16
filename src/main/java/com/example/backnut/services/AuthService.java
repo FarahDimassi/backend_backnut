@@ -3,9 +3,12 @@ package com.example.backnut.services;
 import com.example.backnut.models.User;
 import com.example.backnut.repository.UserRepository;
 import com.example.backnut.security.JwtUtil;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -14,11 +17,17 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final JavaMailSender mailSender;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
+
+    public AuthService(UserRepository userRepository,
+                       PasswordEncoder passwordEncoder,
+                       JwtUtil jwtUtil,
+                       JavaMailSender mailSender) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
+        this.mailSender = mailSender;
     }
 
     public String register(User user) {
@@ -107,4 +116,84 @@ public class AuthService {
         // tokenBlacklistService.addTokenToBlacklist(token);
         // return "Déconnexion réussie, token invalidé.";
     }
+    // Flux de réinitialisation : génère et envoie un OTP à l'email
+    public String forgotPassword(String email) {
+        // 1. Vérifier si l'utilisateur existe via l'email
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            throw new RuntimeException("Aucun utilisateur trouvé avec cet email : " + email);
+        }
+
+        User user = userOpt.get();
+
+        // 2. Générer un code OTP à 4 chiffres
+        String otp = generateOtp(4);
+
+        // 3. Définir l'expiration dans 5 minutes
+        LocalDateTime expiryTime = LocalDateTime.now().plusMinutes(5);
+
+        user.setResetOtp(otp);
+        user.setResetOtpExpiry(expiryTime);
+        userRepository.save(user);
+
+        // 4. Envoyer l'OTP par email
+        sendOtpByEmail(email, otp);
+
+        return "Un OTP a été envoyé à votre adresse email.";
+    }
+
+    // Génération d'un OTP numérique
+    private String generateOtp(int length) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            int digit = (int) (Math.random() * 10);
+            sb.append(digit);
+        }
+        return sb.toString();
+    }
+
+    // Envoi de l'OTP par email avec gestion d'exception
+    private void sendOtpByEmail(String toEmail, String otp) {
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setTo(toEmail);
+        mailMessage.setSubject("Code de réinitialisation de mot de passe");
+        mailMessage.setText("Bonjour,\n\nVoici votre code de réinitialisation : " + otp
+                + "\nIl expire dans 5 minutes.\n\nCordialement,\nVotre application");
+        try {
+            mailSender.send(mailMessage);
+        } catch (Exception ex) {
+            throw new RuntimeException("Erreur lors de l'envoi de l'email", ex);
+        }
+    }
+
+    // Vérification de l'OTP et réinitialisation du mot de passe
+    public String verifyOtpAndResetPassword(String email, String otp, String newPassword) {
+        // 1. Vérifier si l'utilisateur existe
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            throw new RuntimeException("Aucun utilisateur trouvé avec cet email : " + email);
+        }
+
+        User user = userOpt.get();
+
+        // 2. Vérifier que l'OTP correspond et n'est pas expiré
+        if (user.getResetOtp() == null || !user.getResetOtp().equals(otp)) {
+            throw new RuntimeException("OTP invalide.");
+        }
+
+        if (user.getResetOtpExpiry() == null || LocalDateTime.now().isAfter(user.getResetOtpExpiry())) {
+            throw new RuntimeException("OTP expiré, veuillez en générer un nouveau.");
+        }
+
+        // 3. Réinitialiser le mot de passe en l'encodeant
+        user.setPassword(passwordEncoder.encode(newPassword));
+        // Effacer l'OTP et sa date d'expiration
+        user.setResetOtp(null);
+        user.setResetOtpExpiry(null);
+
+        userRepository.save(user);
+
+        return "Mot de passe réinitialisé avec succès.";
+    }
+
 }

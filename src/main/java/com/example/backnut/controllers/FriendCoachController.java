@@ -1,5 +1,6 @@
 package com.example.backnut.controllers;
 
+import com.example.backnut.models.Invitation;
 import com.example.backnut.models.User;
 import com.example.backnut.services.InvitationService;
 import com.example.backnut.services.UserService;
@@ -36,4 +37,22 @@ public class FriendCoachController {
         List<User> coaches = invitationService.findAcceptedCoachesForUser(user);
         return new ResponseEntity<>(coaches, HttpStatus.OK);
     }
+    /**
+     * Récupère la liste des invitations ACCEPTED pour le coach spécifié par son ID.
+     * Exemple d'appel : GET http://localhost:8080/api/friends/coach-invitations/27
+     *
+     * @param coachId l'identifiant du coach.
+     * @return La liste des invitations acceptées pour ce coach.
+     */
+    @GetMapping("/coach-invitations/{coachId}")
+    public ResponseEntity<List<Invitation>> getAcceptedInvitationsForCoach(@PathVariable Long coachId) {
+        Optional<User> coachOpt = userService.getUserById(coachId);
+        if (coachOpt.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        User coach = coachOpt.get();
+        List<Invitation> invitations = invitationService.findAcceptedInvitationsForCoach(coach);
+        return new ResponseEntity<>(invitations, HttpStatus.OK);
+    }
+
 }

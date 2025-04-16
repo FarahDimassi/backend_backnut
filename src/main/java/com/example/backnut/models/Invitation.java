@@ -66,4 +66,6 @@ public class Invitation {
     public void setAdminRequestMessage(String adminRequestMessage) {
         this.adminRequestMessage = adminRequestMessage;
     }
+
+
 }

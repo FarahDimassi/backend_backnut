@@ -18,8 +18,12 @@ public interface InvitationRepository extends JpaRepository<Invitation, Long> {
     boolean existsBySenderAndStatusIn(User sender, List<String> statuses);
     Invitation findBySenderAndStatusIn(User sender, List<String> statuses);
 
-    // Méthode pour vérifier l'existence d'une invitation bloquante
 
     // Retourne le premier résultat trouvé parmi les invitations bloquantes
     Optional<Invitation> findFirstBySenderAndStatusIn(User sender, List<String> statuses);
+    Optional<Invitation> findFirstBySenderAndReceiver(User sender, User receiver);
+    Optional<Invitation> findTopBySenderAndReceiverAndStatusOrderByIdDesc(User sender, User receiver, String status);
+    @Query("SELECT i FROM Invitation i WHERE i.status = :status AND i.receiver.id = :coachId")
+    List<Invitation> findAcceptedInvitationsForCoach(@Param("status") String status, @Param("coachId") Long coachId);
+
 }

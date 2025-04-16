@@ -39,4 +39,16 @@ public class InvitationService {
                 .distinct()  // Élimine les doublons si plusieurs invitations existent
                 .collect(Collectors.toList());
     }
+    /**
+     * Récupère les invitations ACCEPTED pour un coach spécifique.
+     * Le coach est identifié ici par l'objet User passé en paramètre, et on considère qu'il
+     * est le "receiver" de l'invitation.
+     *
+     * @param coach L'objet User représentant le coach.
+     * @return La liste des Invitations dont le status est "ACCEPTED" pour ce coach.
+     */
+    public List<Invitation> findAcceptedInvitationsForCoach(User coach) {
+        // On utilise "ACCEPTED" comme valeur de status, à adapter si besoin.
+        return invitationRepository.findAcceptedInvitationsForCoach("ACCEPTED", coach.getId());
+    }
 }

@@ -32,7 +32,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/uploads/**", "/ws/**").permitAll()
-                        .requestMatchers("/auth/register", "/auth/login").permitAll()
+                        .requestMatchers("/auth/register", "/auth/login" ,"/auth/forgot-password",
+                                "/auth/verify-otp").permitAll()
                         .requestMatchers("/api/protected").hasAuthority("ROLE_User")
                         .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/api/users/**").hasAuthority("ROLE_User")
@@ -47,7 +48,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/meals/**").hasAuthority("ROLE_Coach")
                         .requestMatchers("/api/invitations/**").hasAuthority("ROLE_User")
                         .requestMatchers("/api/invitations/plann/**").hasAuthority("ROLE_User")
-
+                        .requestMatchers("/api/friends/coach-invitations/**").hasAuthority("ROLE_Coach")
                         .requestMatchers("/api/calendar/**").hasAuthority("ROLE_Coach")
                         .requestMatchers("/api/scannedproducts/**").hasAuthority("ROLE_User")
 

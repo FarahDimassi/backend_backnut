@@ -7,11 +7,15 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
     @Query("SELECT COUNT(u) FROM User u WHERE DATE(u.createdAt) = :date")
     long countUsersByCreatedAt(@Param("date") LocalDate date);
+
+    Optional<User> findByEmail(String email);
+    List<User> findAllByEmail(String email);
 
 }
