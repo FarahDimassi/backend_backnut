@@ -1,23 +1,36 @@
 package com.example.backnut.controllers;
 
 import com.example.backnut.models.Meal;
+import com.example.backnut.models.User;
+import com.example.backnut.repository.UserRepository;
 import com.example.backnut.services.MealService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/meals")
 public class MealController {
 
+    private final MealService mealService;
+    private final UserRepository userRepository;        // 2️⃣
+
     @Autowired
-    private MealService mealService;
+    public MealController(MealService mealService, UserRepository userRepository) {
+        this.mealService = mealService;
+        this.userRepository = userRepository;           // 3️⃣
+    }
 
     // Ajouter une journée de repas
     @PostMapping
@@ -150,5 +163,31 @@ public class MealController {
         LocalDate localDate = LocalDate.parse(date);
         List<Meal> meals = mealService.getMealsByUserAndCoachAndDate(userId, coachId, localDate);
         return ResponseEntity.ok(meals);
+    }
+    @GetMapping("/plans")
+    public ResponseEntity<List<Map<String,Object>>> getDailyPlans(
+            @RequestParam("coachId") Long coachId,
+            @RequestParam("date")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
+    ) {
+        // 4️⃣ on récupère les meals pour ce coach + date
+        List<Meal> meals = mealService.findByCoachAndDate(coachId, date);
+
+        // 5️⃣ pour chaque meal, on va lire userId et aller chercher son username
+        List<Map<String,Object>> result = meals.stream()
+                .map(meal -> {
+                    Long userId = meal.getUserId();
+                    User user = userRepository.findById(userId)
+                            .orElseThrow(() ->
+                                    new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                            "Utilisateur introuvable avec id " + userId));
+                    return Map.<String,Object>of(
+                            "userId",   user.getId(),
+                            "username", user.getUsername()
+                    );
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(result);
     }
 }

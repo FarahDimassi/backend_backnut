@@ -18,5 +18,5 @@ public interface MealRepository extends JpaRepository<Meal, Long> {
     Optional<Meal> findOneByUserIdAndDate(Long userId, LocalDate date);
     List<Meal> findByUserIdAndDate(Long userId, LocalDate date);
     List<Meal> findByUserIdAndCoachIdAndDate(Long userId, Long coachId, LocalDate date);
-
+    List<Meal> findByCoachIdAndDate(Long coachId, LocalDate date);
 }

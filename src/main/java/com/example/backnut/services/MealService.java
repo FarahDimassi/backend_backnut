@@ -140,4 +140,7 @@ public class MealService {
 
         return mealRepository.save(meal);
     }
+    public List<Meal> findByCoachAndDate(Long coachId, LocalDate date) {
+        return mealRepository.findByCoachIdAndDate(coachId, date);
+    }
 }
