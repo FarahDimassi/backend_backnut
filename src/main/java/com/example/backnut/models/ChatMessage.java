@@ -1,26 +1,42 @@
 package com.example.backnut.models;
 
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 
 public class ChatMessage {
+
     private Long senderId;
     private Long receiverId;
     private String message;
+    private String attachmentType;   // "image" ou "audio", ou null
+    private String attachmentUrl;    // URL du fichier, ou null
     private LocalDateTime date;
 
-    // Constructors
+    // Constructeur par défaut
     public ChatMessage() {}
 
+    // Constructeur sans pièce jointe
     public ChatMessage(Long senderId, Long receiverId, String message, LocalDateTime date) {
-        this.senderId = senderId;
-        this.receiverId = receiverId;
-        this.message = message;
-        this.date = date;
+        this.senderId      = senderId;
+        this.receiverId    = receiverId;
+        this.message       = message;
+        this.attachmentType= null;
+        this.attachmentUrl = null;
+        this.date          = date;
+    }
+
+    // Constructeur avec pièce jointe
+    public ChatMessage(Long senderId,
+                       Long receiverId,
+                       String message,
+                       String attachmentType,
+                       String attachmentUrl,
+                       LocalDateTime date) {
+        this.senderId       = senderId;
+        this.receiverId     = receiverId;
+        this.message        = message;
+        this.attachmentType = attachmentType;
+        this.attachmentUrl  = attachmentUrl;
+        this.date           = date;
     }
 
     public Long getSenderId() {
@@ -47,6 +63,22 @@ public class ChatMessage {
         this.message = message;
     }
 
+    public String getAttachmentType() {
+        return attachmentType;
+    }
+
+    public void setAttachmentType(String attachmentType) {
+        this.attachmentType = attachmentType;
+    }
+
+    public String getAttachmentUrl() {
+        return attachmentUrl;
+    }
+
+    public void setAttachmentUrl(String attachmentUrl) {
+        this.attachmentUrl = attachmentUrl;
+    }
+
     public LocalDateTime getDate() {
         return date;
     }
@@ -55,4 +87,3 @@ public class ChatMessage {
         this.date = date;
     }
 }
-

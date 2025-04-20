@@ -44,6 +44,8 @@ public class ChatHistoryController {
                         chat.getSenderId(),
                         chat.getReceiverId(),
                         chat.getMessage(),
+                        chat.getAttachmentType(),  // désormais présent
+                        chat.getAttachmentUrl(),
                         chat.getDate()))
                 .collect(Collectors.toList());
 

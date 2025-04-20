@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/meals")
@@ -115,5 +116,39 @@ public class MealController {
         }
     }
 
+    @PostMapping("/user/{id}/tick")
+    public ResponseEntity<Meal> tickMeal(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> payload
+    ) {
+        String field = (String) payload.get("field");
+        Boolean status = (Boolean) payload.get("status");
+        Meal updated = mealService.patchMealTick(id, field, status);
+        return ResponseEntity.ok(updated);
+    }
+    @GetMapping("/user/{userId}/ticks")
+    public ResponseEntity<List<Meal>> getMealsWithTicksForUser(
+            @PathVariable Long userId,
+            @RequestParam String date
+    ) {
+        LocalDate localDate = LocalDate.parse(date);
+        List<Meal> meals = mealService.getMealsByUserAndDate(userId, localDate);
+        return ResponseEntity.ok(meals);
+    }
 
+    /**
+     * Récupère les repas + ticks pour un user et coach à une date donnée.
+     * Exemple d’appel :
+     * GET /api/meals/user/42/coach/7/ticks?date=2025-04-18
+     */
+    @GetMapping("/users/{userId}/coach/{coachId}/ticks")
+    public ResponseEntity<List<Meal>> getMealsWithTicks(
+            @PathVariable Long userId,
+            @PathVariable Long coachId,
+            @RequestParam String date
+    ) {
+        LocalDate localDate = LocalDate.parse(date);
+        List<Meal> meals = mealService.getMealsByUserAndCoachAndDate(userId, coachId, localDate);
+        return ResponseEntity.ok(meals);
+    }
 }

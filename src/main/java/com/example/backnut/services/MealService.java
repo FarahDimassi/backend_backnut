@@ -117,5 +117,27 @@ public class MealService {
     public List<Meal> getPlansForUserAndDate(Long userId, LocalDate date) {
         return mealRepository.findByUserIdAndDate(userId, date);
     }
+    /**
+     * Met à jour l'état "tick" d'un champ de Meal
+     * @param id     l'identifiant du Meal
+     * @param field  le nom du champ à cocher (breakfast, lunch, etc.)
+     * @param status true = coché, false = décoché
+     */
+    public Meal patchMealTick(Long id, String field, Boolean status) {
+        Meal meal = mealRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Meal not found with id " + id));
 
+        switch (field) {
+            case "breakfast": meal.setBreakfastTick(status); break;
+            case "lunch":     meal.setLunchTick(status);     break;
+            case "dinner":    meal.setDinnerTick(status);    break;
+            case "snacks":    meal.setSnacksTick(status);    break;
+            case "sport":     meal.setSportTick(status);     break;
+            case "water":     meal.setWaterTick(status);     break;
+            default:
+                throw new IllegalArgumentException("Unknown tick field: " + field);
+        }
+
+        return mealRepository.save(meal);
+    }
 }

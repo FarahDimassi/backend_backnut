@@ -2,6 +2,7 @@ package com.example.backnut.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -38,21 +39,24 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/api/users/**").hasAuthority("ROLE_User")
                         .requestMatchers("/api/coach/**").hasAuthority("ROLE_Coach")
+                        .requestMatchers(HttpMethod.GET, "/api/chat/images/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/chat/audio/**").permitAll()
                         .requestMatchers("/api/chat/**").authenticated()
                         .requestMatchers("/api/reviews/coach/**").hasAuthority("ROLE_Coach")
                         .requestMatchers("/api/reviews/**").hasAuthority("ROLE_User")
+                        .requestMatchers("/api/stat/**").hasAuthority("ROLE_User")
                         .requestMatchers("/api/meals/user/**").hasAuthority("ROLE_User")
                         .requestMatchers("/api/meals/plan/**").hasAuthority("ROLE_User")
                         .requestMatchers("/api/meals/calend/**").hasAuthority("ROLE_User")
                         .requestMatchers("/api/meals/plann/**").hasAuthority("ROLE_Coach")
                         .requestMatchers("/api/meals/**").hasAuthority("ROLE_Coach")
+
                         .requestMatchers("/api/invitations/**").hasAuthority("ROLE_User")
                         .requestMatchers("/api/invitations/plann/**").hasAuthority("ROLE_User")
                         .requestMatchers("/api/friends/coach-invitations/**").hasAuthority("ROLE_Coach")
                         .requestMatchers("/api/calendar/**").hasAuthority("ROLE_Coach")
                         .requestMatchers("/api/scannedproducts/**").hasAuthority("ROLE_User")
-
-
+                        .requestMatchers("/api/progress/**").hasAuthority("ROLE_User")
 
 
                         .anyRequest().authenticated()

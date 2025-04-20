@@ -28,6 +28,14 @@ public class Meal {
         // Date d'enregistrement pour la journée concernée
         private LocalDate date;
 
+    // ------------------ Tick fields ------------------
+    private Boolean breakfastTick = false;
+    private Boolean lunchTick     = false;
+    private Boolean dinnerTick    = false;
+    private Boolean snacksTick    = false;
+    private Boolean sportTick     = false;
+    private Boolean waterTick     = false;
+    // -------------------------------------------------
         // --- Constructeur par défaut ---
         public Meal() {
         }
@@ -127,5 +135,52 @@ public class Meal {
         public void setDate(LocalDate date) {
             this.date = date;
         }
+    public Boolean getBreakfastTick() {
+        return breakfastTick;
+    }
+
+    public void setBreakfastTick(Boolean breakfastTick) {
+        this.breakfastTick = breakfastTick;
+    }
+
+    public Boolean getLunchTick() {
+        return lunchTick;
+    }
+
+    public void setLunchTick(Boolean lunchTick) {
+        this.lunchTick = lunchTick;
+    }
+
+    public Boolean getDinnerTick() {
+        return dinnerTick;
+    }
+
+    public void setDinnerTick(Boolean dinnerTick) {
+        this.dinnerTick = dinnerTick;
+    }
+
+    public Boolean getSnacksTick() {
+        return snacksTick;
+    }
+
+    public void setSnacksTick(Boolean snacksTick) {
+        this.snacksTick = snacksTick;
+    }
+
+    public Boolean getSportTick() {
+        return sportTick;
+    }
+
+    public void setSportTick(Boolean sportTick) {
+        this.sportTick = sportTick;
+    }
+
+    public Boolean getWaterTick() {
+        return waterTick;
+    }
+
+    public void setWaterTick(Boolean waterTick) {
+        this.waterTick = waterTick;
+    }
     }
 

@@ -24,17 +24,20 @@ public class Chat {
 
     @Column(columnDefinition = "TEXT")
     private String message;
-
+    private String attachmentType;       // "image" ou "audio"
+    private String attachmentUrl;
     private LocalDateTime date;
 
     // Constructors
     public Chat() {}
 
-    public Chat(Long senderId, Long receiverId, String message, LocalDateTime date) {
+    public Chat(Long senderId, Long receiverId, String message, String attachmentType ,String attachmentUrl ,LocalDateTime date) {
         this.senderId = senderId;
         this.receiverId = receiverId;
         this.message = message;
         this.date = date;
+        this.attachmentType=attachmentType;
+        this.attachmentUrl=attachmentUrl;
     }
 
     public Long getId() {
@@ -75,5 +78,21 @@ public class Chat {
 
     public void setDate(LocalDateTime date) {
         this.date = date;
+    }
+
+    public String getAttachmentType() {
+        return attachmentType;
+    }
+
+    public void setAttachmentType(String attachmentType) {
+        this.attachmentType = attachmentType;
+    }
+
+    public String getAttachmentUrl() {
+        return attachmentUrl;
+    }
+
+    public void setAttachmentUrl(String attachmentUrl) {
+        this.attachmentUrl = attachmentUrl;
     }
 }

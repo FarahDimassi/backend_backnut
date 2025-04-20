@@ -2,6 +2,7 @@ package com.example.backnut.controllers;
 
 import com.example.backnut.models.Invitation;
 import com.example.backnut.models.User;
+import com.example.backnut.models.UserProgress;
 import com.example.backnut.repository.InvitationRepository;
 import com.example.backnut.services.AdminService;
 import org.springframework.http.HttpStatus;
@@ -77,5 +78,32 @@ public class AdminController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(requests);
     }
-
+    @GetMapping("/progress")
+    public ResponseEntity<List<UserProgress>> allProgress() {
+        List<UserProgress> list = adminService.getAllProgressEntries();
+        return ResponseEntity.ok(list);
+    }
+    @GetMapping("/progress/user/{userId}")
+    /** 2️⃣ Récupérer le % d’avancement d’un user */
+    public ResponseEntity<Map<String, Object>> progressForUser(@PathVariable Long userId) {
+        Map<String,Object> summary = adminService.getUserProgressSummary(userId);
+        if (summary == null) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(summary);
+    }
+    @GetMapping("/progress/users")
+    public ResponseEntity<List<Map<String, Object>>> progressForAllUsers() {
+        List<Map<String,Object>> summaries = adminService.getAllUsersProgressSummary();
+        if (summaries.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(summaries);
+    }
+    /** 3️⃣ Construire le chart comparatif IA vs réel */
+    @GetMapping("/progress/chart")
+    public ResponseEntity<AdminService.ChartData> progressChart() {
+        AdminService.ChartData data = adminService.buildProgressChart();
+        return ResponseEntity.ok(data);
+    }
 }

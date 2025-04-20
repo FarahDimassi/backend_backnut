@@ -80,6 +80,8 @@ public class ChatController {
                 senderId,
                 chatMessage.getReceiverId(),
                 chatMessage.getMessage(),
+                chatMessage.getAttachmentType(),  // "image" ou "audio", ou null
+                chatMessage.getAttachmentUrl(),   // URL du fichier uploadé, ou null
                 LocalDateTime.now()
         );
         chatRepository.save(chat);
